@@ -1,14 +1,14 @@
 import {React, useEffect, useState, useRef} from "react";
 import axios from "axios";
 import sidoList from "./sidoList.js";
+import shelterList from "./shelterList.js";
 function Main()
 {
     const SERVICE_KEY = process.env.REACT_APP_SERVICE_KEY;
     const [sidoCode, setSidoCode] = useState('');
-    const [sigunCode, setSigunCode] = useState('');
     const [sigunIdx, setSigunIdx] = useState(0);
-    const [shelterCode, setShelterCode] = useState('');
     const [sidoIdx, setIdx] = useState(0);
+    const [shelterName, setShelterName] = useState('');
     const shelter = useRef([{name:'전체', address:'', code:'', placeArr:[]}]);
     useEffect(()=>{
         async function dataLoad()
@@ -16,9 +16,6 @@ function Main()
             const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
             const response = await axios.get(url, {
                 params: {
-                    upr_cd: sidoCode,
-                    org_cd: sigunCode,
-                    care_reg_no: shelterCode,
                     pageNo: 3,
                     numOfRows: 1000,
                     _type: "json"
@@ -33,17 +30,10 @@ function Main()
             shelter.current = shelter.current.filter(
                 (arr, index, callback) => index === callback.findIndex(t => t.name === arr.name)
             );
-            let shelterbyadd = shelter.current.sort((a,b) => {
-                if(a.address > b.address) return 1;
-                if(a.address < b.address) return -1;
-                return 0;
-              });
-            console.log(shelterbyadd);
             console.log(response);
-
         }
         dataLoad();
-    },[])
+    },[SERVICE_KEY])
     return (
         <>
             <select onChange={(e)=>{setIdx(e.target.value)}}>
@@ -62,12 +52,12 @@ function Main()
                 )
             }
             </select>
-            <select onChange={(e)=>{setShelterCode(e.target.value)}}>
+            <select onChange={(e)=>{setShelterName(e.target.value)}}>
             {
                 shelter.current.map((a,i)=>
                 i===0 ? <option value={''}>전체</option>
-                : sidoList[sidoIdx].detail[sigunIdx] === shelter.current[i].placeArr[1]
-                    ? <option value={shelter.current[i].code}>{shelter.current[i].name}</option>
+                : sidoList[sidoIdx].detail[sigunIdx] === shelter.current[i].placeArr[1] && sidoList[sidoIdx].name === shelter.current[i].placeArr[0]
+                    ? <option value={shelter.current[i].name}>{shelter.current[i].name}</option>
                     : null
                 )
             }
@@ -78,14 +68,20 @@ function Main()
 
     async function dataLoad()
     { 
-        console.log(sidoCode);
-        console.log(sidoList[sidoIdx].detail_code[sigunIdx]);
-        console.log(shelterCode);
+        const sigunCode = sidoList[sidoIdx].detail_code[sigunIdx];
+        let shelterCode='';
+        for(var i=0; i<shelterList.length; i++)
+        {
+            if(shelterName === shelterList[i].name && sigunCode === shelterList[i].org_cd)
+            {
+                shelterCode=shelterList[i].code;
+            }
+        }
         const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
         const response = await axios.get(url, {
             params: {
                 upr_cd: sidoCode,
-                org_cd: sidoList[sidoIdx].detail_code[sigunIdx],
+                org_cd: sigunCode,
                 care_reg_no: shelterCode,
                 pageNo: 1,
                 numOfRows: 10,
