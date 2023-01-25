@@ -1,8 +1,11 @@
 import {React, useEffect, useState, useRef} from "react";
-import { RenderAfterNavermapsLoaded, NaverMap, Marker } from 'react-naver-maps';
+import { RenderAfterNavermapsLoaded } from 'react-naver-maps';
 import axios from "axios";
 import sidoList from "./sidoList.js";
 import shelterList from "./shelterList.js";
+import NaverMapAPI from "./naverMapAPI.js";
+import Loading from "./img/loading.gif";
+
 function Main()
 {
     const SERVICE_KEY = process.env.REACT_APP_SERVICE_KEY;
@@ -78,8 +81,8 @@ function Main()
                 submodules={["geocoder"]}>
             {
                 flag === true
-                ? <NaverMapAPI />
-                : null
+                ? <NaverMapAPI newShelter={newShelter}/>
+                : <img alt="loading" src={Loading}></img>
             }
             </RenderAfterNavermapsLoaded>
         </div>
@@ -121,36 +124,6 @@ function Main()
         setTimeout(()=>{setFlag(true)},2000);
         console.log(response);
     }
-    function NaverMapAPI() {
-        const navermaps = window.naver.maps;
-        console.log(newShelter);
-        return (
-          <NaverMap
-            mapDivId={'maps-getting-started-uncontrolled'} // default: react-naver-map
-            style={{
-              width: '100%', // 네이버지도 가로 길이
-              height: '80vh' // 네이버지도 세로 길이
-            }}
-            defaultCenter={{ lat: 35.954722, lng: 127.865306247 }} // 지도 초기 위치
-            defaultZoom={7} // 지도 초기 확대 배율
-            >
-            {
-                newShelter.current.map((a,i)=>
-                <Marker
-                key={newShelter.current[i].name}
-                title={newShelter.current[i].name}
-                position={new navermaps.LatLng(newShelter.current[i].matrix.lat, newShelter.current[i].matrix.lng)}
-                animation={2}
-                onClick={() => {
-                    alert("여기는 N서울타워입니다!");
-                  }}
-                />
-                )
-            }
-            
-            </NaverMap>
-        );
-      }
       function searchAddressToCoordinate()
       {
           const navermaps = window.naver.maps;
