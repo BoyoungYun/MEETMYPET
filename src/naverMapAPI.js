@@ -8,7 +8,7 @@ function NaverMapAPI({newShelter}) {
         mapDivId={'maps-getting-started-uncontrolled'} // default: react-naver-map
         style={{
           width: '100%', // 네이버지도 가로 길이
-          height: '80vh' // 네이버지도 세로 길이
+          height: '70vh' // 네이버지도 세로 길이
         }}
         defaultCenter={{ lat: 35.954722, lng: 127.865306247 }} // 지도 초기 위치
         defaultZoom={7} // 지도 초기 확대 배율
@@ -22,7 +22,11 @@ function NaverMapAPI({newShelter}) {
             animation={2}
             onClick={() => {
                 alert("여기는 N서울타워입니다!");
-              }}/>
+              }}
+            icon={{
+                content:
+                `<img src="/images/pets.png"/>`
+            }}/>
             )
         }
         

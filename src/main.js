@@ -4,7 +4,8 @@ import axios from "axios";
 import sidoList from "./sidoList.js";
 import shelterList from "./shelterList.js";
 import NaverMapAPI from "./naverMapAPI.js";
-import Loading from "./img/loading.gif";
+import { Dropdown, DropdownButton } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
 
 function Main()
 {
@@ -14,9 +15,9 @@ function Main()
     const [sigunIdx, setSigunIdx] = useState(0);
     const [sidoIdx, setIdx] = useState(0);
     const [shelterName, setShelterName] = useState('');
-    const shelter = useRef([{name:'전체', address:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
+    const shelter = useRef([{name:'전체', address:'', code:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
     const [flag, setFlag] = useState(false);
-    const newShelter = useRef([{name:'전체', address:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
+    const newShelter = useRef([{name:'전체', address:'', code:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
     useEffect(()=>{
         async function dataLoad()
         {
@@ -30,59 +31,82 @@ function Main()
             });
             let itemArr = response.data.response.body.items.item;
             let tempShelter = [];
-            for (var i = 0; i < itemArr.length; i++) {
-                tempShelter.push({ name: itemArr[i].careNm, address: itemArr[i].careAddr, placeArr: itemArr[i].orgNm.split(" ") });
+            for (let i = 0; i < itemArr.length; i++) {
+                for(let j=0; j<shelterList.length; j++)
+                {
+                    if(shelterList[j].name===itemArr[i].careNm && shelterList[j].org_Nm===itemArr[i].orgNm)
+                    {
+                        tempShelter.push({ name: itemArr[i].careNm, code: shelterList[j].code, address: itemArr[i].careAddr, placeArr: itemArr[i].orgNm.split(" ") });
+                    }
+                }
             }
             shelter.current = [...shelter.current, ...tempShelter];
             shelter.current = shelter.current.filter(
-                (arr, index, callback) => index === callback.findIndex(t => t.name === arr.name)
+                (arr, index, callback) => index === callback.findIndex(t => t.code === arr.code)
             );
             newShelter.current = [...shelter.current];
             console.log(response);
+            console.log(newShelter);
             searchAddressToCoordinate();
-            setTimeout(()=>{setFlag(true)},2500);
+            setTimeout(()=>{setFlag(true)},3000);
         }
         dataLoad();
     },[SERVICE_KEY])
-    
+    const [sidoTitle, setSidoTitle] = useState('시/도');
+    const [sigunTitle, setSigunTitle] = useState('시/군/구');
+    const [shelterTitle, setShelterTitle] = useState('보호센터');
     return (
         <div>
-            <select onChange={(e)=>{setIdx(e.target.value);}}>
+                <div className="headline mt-4">FINDPETMAP</div>
+                <div className="headline_sub"><span>유기동물 지도조회 서비스</span></div>
             {
-                sidoList.map((a,i)=>
-                    i===0
-                    ? <option value={0}>전체</option>
-                    : <option value={sidoList[i].id}>{sidoList[i].name}</option>
-                )
+                flag === true
+                ? 
+                <>
+                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1 mt-1" id="dropdown-basic-button" title={sidoTitle} onSelect={(eventKey)=>{setIdx(eventKey);}}>
+                {
+                    sidoList.map((a,i)=>
+                        i===0
+                        ? <Dropdown.Item as="button" eventKey={0}><div onClick={()=>{setSidoTitle('전체')}}>전체</div></Dropdown.Item>
+                        : <Dropdown.Item eventKey={sidoList[i].id}><div onClick={()=>{setSidoTitle(sidoList[i].name)}}>{sidoList[i].name}</div></Dropdown.Item>
+                    )
+                }
+                </DropdownButton>
+                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1" id="dropdown-basic-button" title={sigunTitle} onSelect={(eventKey)=>{setSidoCode(sidoList[sidoIdx].code); setSigunIdx(eventKey);}}>
+                {
+                    sidoList[sidoIdx].detail.map((a,i)=>
+                    <Dropdown.Item eventKey={i}><div onClick={()=>{setSigunTitle(sidoList[sidoIdx].detail[i])}}>{sidoList[sidoIdx].detail[i]}</div></Dropdown.Item>
+                    )
+                }
+                </DropdownButton>        
+                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1" id="dropdown-basic-button" title={shelterTitle} onSelect={(eventKey)=>{setShelterName(eventKey);}}>
+                {
+                    shelter.current.map((a,i)=>
+                    i===0 ? <Dropdown.Item eventKey={''}><div onClick={()=>{setShelterTitle('전체')}}>전체</div></Dropdown.Item>
+                    : sidoList[sidoIdx].detail[sigunIdx] === shelter.current[i].placeArr[1] && sidoList[sidoIdx].name === shelter.current[i].placeArr[0]
+                        ? <Dropdown.Item eventKey={shelter.current[i].name}><div onClick={()=>{setShelterTitle(shelter.current[i].name)}}>{shelter.current[i].name}</div></Dropdown.Item>
+                        : null
+                    )
+                }
+            </DropdownButton>
+            <Button variant="outline-primary" className="mx-1"><div className="dropDown" onClick={()=>{dataLoad(); setFlag(false);}}>유기동물 조회</div></Button>
+            <div className="mt-3"></div>
+            
+            </>
+            : null
             }
-            </select>
-            <select onChange={(e)=>{setSidoCode(sidoList[sidoIdx].code); setSigunIdx(e.target.value);}}>
-            {
-                sidoList[sidoIdx].detail.map((a,i)=>
-                <option value={i}>{sidoList[sidoIdx].detail[i]}</option>
-                )
-            }
-            </select>
-            <select onChange={(e)=>{setShelterName(e.target.value)}}>
-            {
-                shelter.current.map((a,i)=>
-                i===0 ? <option value={''}>전체</option>
-                : sidoList[sidoIdx].detail[sigunIdx] === shelter.current[i].placeArr[1] && sidoList[sidoIdx].name === shelter.current[i].placeArr[0]
-                    ? <option value={shelter.current[i].name}>{shelter.current[i].name}</option>
-                    : null
-                )
-            }
-        </select>
-            <div onClick={()=>{dataLoad(); setFlag(false);}}>유기동물 조회</div>
             <RenderAfterNavermapsLoaded
                 ncpClientId={CLIENT_ID}
                 error={<p>Maps Load Error</p>}
-                loading={<p>Maps Loading...</p>}
                 submodules={["geocoder"]}>
             {
                 flag === true
                 ? <NaverMapAPI newShelter={newShelter}/>
-                : <img alt="loading" src={Loading}></img>
+                : 
+                <>
+                <img alt="loading" src="/images/loading.gif"></img>
+                <div className="headline_sub"><span>지도 로딩 중...</span></div>
+                </>
             }
             </RenderAfterNavermapsLoaded>
         </div>
@@ -113,15 +137,21 @@ function Main()
         });
         let itemArr = response.data.response.body.items.item;
         let tempShelter = [];
-        for (let j = 0; j < itemArr.length; j++) {
-            tempShelter.push({ name: itemArr[j].careNm, address: itemArr[j].careAddr, placeArr: itemArr[j].orgNm.split(" "), matrix:[{lng:'', lat:''}]});
+        for (let i = 0; i < itemArr.length; i++) {
+            for(let j=0; j<shelterList.length; j++)
+            {
+                if(shelterList[j].name===itemArr[i].careNm && shelterList[j].org_Nm===itemArr[i].orgNm)
+                {
+                    tempShelter.push({ name: itemArr[i].careNm, code: shelterList[j].code, address: itemArr[i].careAddr, placeArr: itemArr[i].orgNm.split(" ") });
+                }
+            }
         }
         newShelter.current = [...newShelter.current, ...tempShelter];
             newShelter.current = newShelter.current.filter(
                 (arr, index, callback) => index === callback.findIndex(t => t.name === arr.name)
             );
         searchAddressToCoordinate();
-        setTimeout(()=>{setFlag(true)},2000);
+        setTimeout(()=>{setFlag(true)},3000);
         console.log(response);
     }
       function searchAddressToCoordinate()
