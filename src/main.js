@@ -11,35 +11,44 @@ function Main()
 {
     const SERVICE_KEY = process.env.REACT_APP_SERVICE_KEY;
     const CLIENT_ID = process.env.REACT_APP_NAVER_CLIENT_ID;
-    const [sidoCode, setSidoCode] = useState('');
     const [sigunIdx, setSigunIdx] = useState(0);
     const [sidoIdx, setIdx] = useState(0);
     const [shelterName, setShelterName] = useState('');
     const shelter = useRef([{name:'전체', address:'', code:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
     const [flag, setFlag] = useState(false);
     const newShelter = useRef([{name:'전체', address:'', code:'', placeArr:[], matrix:[{lng:'', lat:''}]}]);
+    const data = useRef([]);
     useEffect(()=>{
         async function dataLoad()
         {
             const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
-            const response = await axios.get(url, {
+            let response = await axios.get(url, {
                 params: {
-                    pageNo: 3,
+                    pageNo: 1,
                     numOfRows: 1000,
                     _type: "json"
                 }
             });
             let itemArr = response.data.response.body.items.item;
+            response = await axios.get(url, {
+                params: {
+                    pageNo: 2,
+                    numOfRows: 1000,
+                    _type: "json"
+                }
+            });
+            itemArr = [...itemArr, ...response.data.response.body.items.item];
             let tempShelter = [];
             for (let i = 0; i < itemArr.length; i++) {
                 for(let j=0; j<shelterList.length; j++)
                 {
                     if(shelterList[j].name===itemArr[i].careNm && shelterList[j].org_Nm===itemArr[i].orgNm)
                     {
-                        tempShelter.push({ name: itemArr[i].careNm, code: shelterList[j].code, address: itemArr[i].careAddr, placeArr: itemArr[i].orgNm.split(" ") });
+                        tempShelter.push({ name: itemArr[i].careNm, code: shelterList[j].code, address: itemArr[i].careAddr, placeArr: itemArr[i].orgNm.split(" "), matrix:[{lng:'', lat:''}] });
                     }
                 }
             }
+            data.current = [...data.current, ...itemArr];
             shelter.current = [...shelter.current, ...tempShelter];
             shelter.current = shelter.current.filter(
                 (arr, index, callback) => index === callback.findIndex(t => t.code === arr.code)
@@ -47,8 +56,9 @@ function Main()
             newShelter.current = [...shelter.current];
             console.log(response);
             console.log(newShelter);
+            console.log(data);
             searchAddressToCoordinate();
-            setTimeout(()=>{setFlag(true)},3000);
+            setTimeout(()=>{setFlag(true)},5000);
         }
         dataLoad();
     },[SERVICE_KEY])
@@ -57,13 +67,14 @@ function Main()
     const [shelterTitle, setShelterTitle] = useState('보호센터');
     return (
         <div>
-                <div className="headline mt-4">FINDPETMAP</div>
-                <div className="headline_sub"><span>유기동물 지도조회 서비스</span></div>
+                
             {
                 flag === true
                 ? 
                 <>
-                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1 mt-1" id="dropdown-basic-button" title={sidoTitle} onSelect={(eventKey)=>{setIdx(eventKey);}}>
+                <div className="headline mt-4">MEETMYPET</div>
+                <div className="headline_sub"><span>유기동물 지도조회 서비스</span></div>
+                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1" id="dropdown-basic-button" title={sidoTitle} onSelect={(eventKey)=>{setIdx(eventKey);}}>
                 {
                     sidoList.map((a,i)=>
                         i===0
@@ -72,7 +83,7 @@ function Main()
                     )
                 }
                 </DropdownButton>
-                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1" id="dropdown-basic-button" title={sigunTitle} onSelect={(eventKey)=>{setSidoCode(sidoList[sidoIdx].code); setSigunIdx(eventKey);}}>
+                <DropdownButton style={{display:'inline-block'}} className="dropDown mx-1" id="dropdown-basic-button" title={sigunTitle} onSelect={(eventKey)=>{setSigunIdx(eventKey);}}>
                 {
                     sidoList[sidoIdx].detail.map((a,i)=>
                     <Dropdown.Item eventKey={i}><div onClick={()=>{setSigunTitle(sidoList[sidoIdx].detail[i])}}>{sidoList[sidoIdx].detail[i]}</div></Dropdown.Item>
@@ -89,9 +100,7 @@ function Main()
                     )
                 }
             </DropdownButton>
-            <Button variant="outline-primary" className="mx-1"><div className="dropDown" onClick={()=>{dataLoad(); setFlag(false);}}>유기동물 조회</div></Button>
-            <div className="mt-3"></div>
-            
+            <Button variant="outline-primary" className="mx-1 mt-2 mb-2"><div className="dropDown" onClick={()=>{dataLoad(); setFlag(false);}}>유기동물 조회</div></Button>
             </>
             : null
             }
@@ -101,12 +110,14 @@ function Main()
                 submodules={["geocoder"]}>
             {
                 flag === true
-                ? <NaverMapAPI newShelter={newShelter}/>
+                ? <NaverMapAPI newShelter={newShelter} data={data}/>
                 : 
-                <>
+                <div className="my-5 py-5">
+                <div className="headline mt-5 py-3">MEETMYPET</div>
+                <div className="headline_sub"><span>유기동물 지도조회 서비스</span></div>
                 <img alt="loading" src="/images/loading.gif"></img>
                 <div className="headline_sub"><span>지도 로딩 중...</span></div>
-                </>
+                </div>
             }
             </RenderAfterNavermapsLoaded>
         </div>
@@ -114,8 +125,14 @@ function Main()
 
     async function dataLoad()
     { 
+        let pageNo = 1;
+        let numOfRows = 1000;
+        let sidoCode = sidoList[sidoIdx].code;
+        let sigunCode = sidoList[sidoIdx].detail_code[sigunIdx];
+
         newShelter.current = [{name:'전체', address:'', placeArr:[], matrix:[{lng:'', lat:''}]}];
-        const sigunCode = sidoList[sidoIdx].detail_code[sigunIdx];
+        data.current = [];
+
         let shelterCode='';
         for(let i=0; i<shelterList.length; i++)
         {
@@ -124,18 +141,37 @@ function Main()
                 shelterCode=shelterList[i].code;
             }
         }
+        console.log(sidoCode);
+        console.log(sigunCode);
+        console.log(shelterCode);
         const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
-        const response = await axios.get(url, {
+        let response = await axios.get(url, {
             params: {
                 upr_cd: sidoCode,
                 org_cd: sigunCode,
                 care_reg_no: shelterCode,
-                pageNo: 1,
-                numOfRows: 10,
+                pageNo: pageNo,
+                numOfRows: numOfRows,
+                state: "notice",
                 _type: "json"
             }
         });
         let itemArr = response.data.response.body.items.item;
+        if(sidoIdx===0)
+        {
+            response = await axios.get(url, {
+                params: {
+                    upr_cd: sidoCode,
+                    org_cd: sigunCode,
+                    care_reg_no: shelterCode,
+                    pageNo: 2,
+                    numOfRows: numOfRows,
+                    state: "notice",
+                    _type: "json"
+                }
+            });
+            itemArr = [...itemArr, ...response.data.response.body.items.item];
+        }
         let tempShelter = [];
         for (let i = 0; i < itemArr.length; i++) {
             for(let j=0; j<shelterList.length; j++)
@@ -146,6 +182,7 @@ function Main()
                 }
             }
         }
+        data.current = [...data.current, ...itemArr];
         newShelter.current = [...newShelter.current, ...tempShelter];
             newShelter.current = newShelter.current.filter(
                 (arr, index, callback) => index === callback.findIndex(t => t.name === arr.name)
@@ -153,12 +190,14 @@ function Main()
         searchAddressToCoordinate();
         setTimeout(()=>{setFlag(true)},3000);
         console.log(response);
+        console.log(data);
     }
       function searchAddressToCoordinate()
       {
           const navermaps = window.naver.maps;
-          const tempMatrix = [{lng:'127.065306247', lat:'34.830044004'},{lng:'126.781226058', lat:'34.331872997'},{lng:'129.21957696', lat:'37.359297145'},
-          {lng:'128.5298266', lat:'35.571881'},{lng:'128.60968014', lat:'35.868390999'}];
+          const tempMatrix = [{name:'보성유기동물보호센터',lng:'127.065306247', lat:'34.830044004'},{name:'유기동물임시보호센터',lng:'126.781226058', lat:'34.331872997'},
+          {name:'삼척시동물보호센터', lng:'129.21957696', lat:'37.359297145'},{name:'늘푸른동물병원', lng:'126.738388227', lat:'37.522709653'},
+          {name:'창녕 유기동물보호소', lng:'128.5298266', lat:'35.571881'},{name:'대구시수의사회(동인)', lng:'128.60968014', lat:'35.868390999'}];
           for(let i=1; i<newShelter.current.length; i++)
           {
               navermaps.Service.geocode(
@@ -174,11 +213,16 @@ function Main()
                         }
         
                         if (response.v2.meta.totalCount === 0) {
-                            newShelter.current[i].matrix = {
-                                lng: tempMatrix[0].lng,
-                                lat: tempMatrix[0].lat,
-                            };
-                            tempMatrix.shift();
+                            for(let j=0; j<tempMatrix.length; j++)
+                            {
+                                if(tempMatrix[j].name===newShelter.current[i].name)
+                                {
+                                    newShelter.current[i].matrix = {
+                                        lng: tempMatrix[j].lng,
+                                        lat: tempMatrix[j].lat
+                                    };
+                                }
+                            }
                         }
                         else
                         {
@@ -186,11 +230,12 @@ function Main()
                             newShelter.current[i].matrix = {
                                 lng: item.x,
                                 lat: item.y,
-                        }
+                            }
                       };
                   },
               );
           }
+
       };
 }
 export default Main;
