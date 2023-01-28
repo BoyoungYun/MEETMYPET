@@ -21,7 +21,7 @@ function Main()
     useEffect(()=>{
         async function dataLoad()
         {
-            const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
+            const url = `https://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
             let response = await axios.get(url, {
                 params: {
                     pageNo: 1,
@@ -144,7 +144,7 @@ function Main()
         console.log(sidoCode);
         console.log(sigunCode);
         console.log(shelterCode);
-        const url = `http://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
+        const url = `https://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
         let response = await axios.get(url, {
             params: {
                 upr_cd: sidoCode,
