@@ -54,9 +54,6 @@ function Main()
                 (arr, index, callback) => index === callback.findIndex(t => t.code === arr.code)
             );
             newShelter.current = [...shelter.current];
-            console.log(response);
-            console.log(newShelter);
-            console.log(data);
             searchAddressToCoordinate();
             setTimeout(()=>{setFlag(true)},5000);
         }
@@ -141,9 +138,6 @@ function Main()
                 shelterCode=shelterList[i].code;
             }
         }
-        console.log(sidoCode);
-        console.log(sigunCode);
-        console.log(shelterCode);
         const url = `https://apis.data.go.kr/1543061/abandonmentPublicSrvc/abandonmentPublic?serviceKey=${SERVICE_KEY}`;
         let response = await axios.get(url, {
             params: {
@@ -189,8 +183,6 @@ function Main()
             );
         searchAddressToCoordinate();
         setTimeout(()=>{setFlag(true)},3000);
-        console.log(response);
-        console.log(data);
     }
       function searchAddressToCoordinate()
       {
