@@ -1,6 +1,7 @@
 # MEETMYPET : 유기동물 지도조회 서비스
 ## https://meetmypet-map.netlify.app/
-#### 전국 유기동물 현황을 지도로 표시하고, 현재 보호소에 보호공고중인 동물들을 지역별로 찾아볼 수 있는 서비스입니다.
+#### 전국 유기동물 현황을 지도로 표시하고,
+#### 현재 보호소에 보호공고중인 동물들을 지역별로 찾아볼 수 있는 서비스입니다.
 #### 공공데이터포털 유기동물 조회 api와 네이버지도 api를 사용하였습니다.
 # 사용 기술 스택
 ### <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"> <img src="https://img.shields.io/badge/bootstrap-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white">
