@@ -18,6 +18,7 @@ function Main() {
       name: "전체",
       address: "",
       code: "",
+      tel: "",
       placeArr: [],
       matrix: [{ lng: "", lat: "" }],
     },
@@ -28,6 +29,7 @@ function Main() {
       name: "전체",
       address: "",
       code: "",
+      tel: "",
       placeArr: [],
       matrix: [{ lng: "", lat: "" }],
     },
@@ -63,6 +65,7 @@ function Main() {
               name: itemArr[i].careNm,
               code: shelterList[j].code,
               address: itemArr[i].careAddr,
+              tel: itemArr[i].officetel,
               placeArr: itemArr[i].orgNm.split(" "),
               matrix: [{ lng: "", lat: "" }],
             });
@@ -229,6 +232,7 @@ function Main() {
       {
         name: "전체",
         address: "",
+        tel: "",
         placeArr: [],
         matrix: [{ lng: "", lat: "" }],
       },
@@ -281,6 +285,7 @@ function Main() {
           tempShelter.push({
             name: itemArr[i].careNm,
             code: shelterList[j].code,
+            tel: itemArr[i].officetel,
             address: itemArr[i].careAddr,
             placeArr: itemArr[i].orgNm.split(" "),
           });
