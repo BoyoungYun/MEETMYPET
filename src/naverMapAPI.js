@@ -52,6 +52,9 @@ function NaverMapAPI({ newShelter, data }) {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+        <h6 className="mt-5 mb-3"><b>{newShelter.current[idx].name}</b></h6>
+        <h6 className="mb-3">주소 : {newShelter.current[idx].address}</h6>
+        <h6 className="mb-5">전화번호 : {newShelter.current[idx].tel}</h6>
           {data.current.map((a, i) =>
             data.current[i].careNm === newShelter.current[idx].name ? (
               <>
@@ -83,10 +86,7 @@ function NaverMapAPI({ newShelter, data }) {
                 <h6 className="mb-3">
                   공고 : {data.current[i].noticeSdt}~{data.current[i].noticeEdt}
                 </h6>
-                <h6 className="mb-3">관할 : {data.current[i].orgNm}</h6>
-                <h6 className="mb-3">보호센터 : {data.current[i].careNm}</h6>
-                <h6 className="mb-3">보호장소 : {data.current[i].careAddr}</h6>
-                <h6 className="mb-5">전화번호 : {data.current[i].officetel}</h6>
+                <h6 className="mb-5">관할 : {data.current[i].orgNm}</h6>
               </>
             ) : null
           )}
